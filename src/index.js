@@ -6,8 +6,6 @@ dotenv.config({
 })
 connectDB()
 
-//restarted
-
 
 // import express from 'express';
 // const app = express()
