@@ -48,7 +48,7 @@ const userSchema = new Schema({
 
 userSchema.pre("save", async function(next) { // next is used to denote end of function and move on
   if (!this.isModified("password")) return next();
-  this.password = bcrypt.hash(this.password, 10)
+  this.password = await bcrypt.hash(this.password, 10)
   next()
 })
 
