@@ -104,8 +104,9 @@ const loginUser = asyncHandler( async (req, res) => {
   // send secure cookie
 
   const { email, username, password } = req.body;
+  console.log(email)
 
-  if (!username || !email) {
+  if (!username && !email) {
     throw new ApiError(400, "Username/Email required");
   }
 
@@ -120,7 +121,7 @@ const loginUser = asyncHandler( async (req, res) => {
   const isPasswordValid = await user.isPasswordCorrect(password);
 
   if (!isPasswordValid) {
-    throw new ApiError(404, "Invalid password");
+    throw new ApiError(401, "Invalid password");
   }
 
   const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
