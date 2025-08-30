@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js"
 import { User } from "../models/user.model.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken"
 
@@ -272,10 +272,39 @@ const updateUserAvatar = asyncHandler( async (req, res) => {
   const avatar = await uploadOnCloudinary(avatarLocalPath)
 
   if (!avatar.url) {
-    throw new ApiError(400, "Error while uploading avatar")
+    throw new ApiError(500, "Error while uploading avatar")
   }
 
-  const user = await User.findByIdAndUpdate(
+  let user = await User.findById(req.user?._id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const oldAvatar = user?.avatar;
+  // console.log(oldAvatar);
+
+  // if (!oldAvatar) {
+  //   throw new ApiError(500, "No old avatar url found")
+  // }
+
+  try {
+    if (oldAvatar) {
+      // console.log("old avatar exists")
+      const oldAvatarPublicId = oldAvatar.split("/").pop().split(".")[0];
+  
+      // console.log(oldAvatarPublicId)
+      const deleted = await deleteFromCloudinary(oldAvatarPublicId);
+      
+      if (deleted.result !== "ok") {
+        // throw new ApiError(500, `Deletion not possible: ${deleted.result}`)
+        console.log(`Old avatar deletion failed: ${deleted.result}`)
+      }
+    }
+  } catch (error) {
+    console.error("Cloudinary deletion error: ", error)
+  }  
+
+  user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
@@ -300,10 +329,32 @@ const updateUserCoverImage = asyncHandler( async (req, res) => {
   const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
   if (!coverImage.url) {
-    throw new ApiError(400, "Error while uploading cover image")
+    throw new ApiError(500, "Error while uploading cover image")
   }
 
-  const user = await User.findByIdAndUpdate(
+  let user = await User.findById(req.user?._id);
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const oldCoverImage = user?.coverImage;
+
+  try {
+    if (oldCoverImage) {
+      const oldCoverImagePublicId = oldCoverImage.split("/").pop().split(".")[0]
+      
+      const deleted = await deleteFromCloudinary(oldCoverImagePublicId);
+  
+      if (deleted.result !== "ok") {
+        // throw new ApiError(500, "Deletion failed")
+        console.log(`Old cover image deletion failed: ${deleted.result}`)
+      }
+    }
+  } catch (error) {
+    console.error("Cloudinary deletion error: ", error)
+  }
+
+  user = await User.findByIdAndUpdate(
     req.user?._id,
     {
       $set: {
