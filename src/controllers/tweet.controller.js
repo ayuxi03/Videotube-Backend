@@ -90,6 +90,28 @@ const deleteTweet = asyncHandler( async (req, res) => {
     throw new ApiError(400, "Invalid object ID");
   }
 
+  // Check if tweet exists
+  
+  // const tweet = await Tweet.findById(tweetId);
+  // if (!tweet) {
+  //   throw new ApiError(404, "Tweet not found");
+  // }
+
+
+  // Check if user owns the tweet
+
+  // if (tweet.owner.toString() !== userId.toString()) {
+  //   throw new ApiError(403, "You can only delete your own tweets");
+  // }
+
+  // Delete the tweet. This method does not check for ownership. Beginner's approach. Easy to catch specific errors
+
+  // const deletedTweet = await Tweet.findByIdAndDelete(tweetId);
+  // if (!deletedTweet) {
+  //   throw new ApiError(500, "Something went wrong while deleting a tweet");
+  // }
+
+  // Delete the tweet. Industry standard is to use findOneAndDelete
   const deletedTweet = await Tweet.findOneAndDelete(
     {
       _id: tweetId,
