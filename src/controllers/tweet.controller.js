@@ -21,9 +21,9 @@ const createTweet = asyncHandler( async (req, res) => {
   }
 
   return res
-    .status(200)
+    .status(201)
     .json(
-      new ApiResponse(200, createdTweet, "Tweet created successfully")
+      new ApiResponse(201, createdTweet, "Tweet created successfully")
     )
 })
 
@@ -38,10 +38,6 @@ const getUserTweets = asyncHandler( async (req, res) => {
   const tweets = await Tweet
     .find({ owner: userId })
     .sort({ createdAt: -1 }); //to show the latest tweets first
-
-  if (!tweets || tweets.length === 0) {
-    throw new ApiError(404, "No tweets found for this user");
-  }
 
   return res
     .status(200)
