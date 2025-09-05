@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"; // for aggregation pipleine
 
 const videoSchema = new Schema({
@@ -31,7 +31,7 @@ const videoSchema = new Schema({
     default: true
   },
   owner: {
-    type: Schema.Types.objectId,
+    type: Schema.Types.ObjectId,
     ref: "User"
   }
 }, {timestamps: true})
