@@ -103,4 +103,49 @@ const incrementVideoViews = asyncHandler( async (req, res) => {
     )
 })
 
-export { getAllVideos, publishVideo, getVideoById, incrementVideoViews };
+const updateVideo = asyncHandler( async (req, res) => {
+  const { videoId } = req.params;
+  const { title, description } = req.body;
+
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid object ID");
+  }
+
+  const updateData = {}
+  if (title) updateData.title = title;
+  if (description) updateData.description = description;
+
+  if (req.file) {
+    const thumbnailLocalPath = req.file.path;
+    if (!thumbnailLocalPath) {
+      throw new ApiError(400, "Thumbnail file missing")
+    }
+
+    const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
+    if (!thumbnail.url) {
+      throw new ApiError(500, "Failed to upload thumbnail")
+    }
+
+    if (thumbnail?.url) updateData.thumbnail = thumbnail.url;
+  }
+
+  const updatedVideo = await Video.findOneAndUpdate(
+    {_id: videoId, owner: req.user?._id},
+    { $set: updateData },
+    { new: true, runValidators: true }
+  )
+
+  if (!updatedVideo) {
+    throw new ApiError(400, "Video not found")
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedVideo, "Video updated successfully")
+    )
+})
+
+//TODO: delete old thumbnail after update
+
+export { getAllVideos, publishVideo, getVideoById, incrementVideoViews, updateVideo };
