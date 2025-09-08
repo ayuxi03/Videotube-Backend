@@ -3,7 +3,7 @@ import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const getAllVideos = asyncHandler( async (req, res) => {
   const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
@@ -127,7 +127,22 @@ const updateVideo = asyncHandler( async (req, res) => {
     }
 
     if (thumbnail?.url) updateData.thumbnail = thumbnail.url;
+
+    const video = await Video.findOne({_id: videoId, owner: req.user?._id})
+    const oldThumbnail = video?.thumbnail
+
+    try {
+      if (oldThumbnail) {
+        const deleted = await deleteFromCloudinary(oldThumbnail);
+        if (deleted.result !== "ok") {
+          console.log(`Old thumbnail deletion failed: ${deleted.result}`)
+        }
+      }
+    } catch (error) {
+      console.error("Cloudinary deletion error: ", error)
+    }
   }
+
 
   const updatedVideo = await Video.findOneAndUpdate(
     {_id: videoId, owner: req.user?._id},
