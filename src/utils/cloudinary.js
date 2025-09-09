@@ -25,7 +25,7 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 }
 
-const deleteFromCloudinary = async (imgPath) => {
+const deleteFromCloudinary = async (imgPath, resourceType) => {
   try {
     if (!imgPath) {
       console.log("No public id passed")
@@ -34,7 +34,7 @@ const deleteFromCloudinary = async (imgPath) => {
 
     const publicId = imgPath.split("/").pop().split(".")[0];
     
-    const response = await cloudinary.uploader.destroy(publicId);
+    const response = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
     // console.log("cloudinary delete response: ",response)
     return response;
   } catch (error) {

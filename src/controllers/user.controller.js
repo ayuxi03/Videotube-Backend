@@ -286,7 +286,7 @@ const updateUserAvatar = asyncHandler( async (req, res) => {
   try {
     if (oldAvatar) {  
       // console.log(oldAvatar)
-      const deleted = await deleteFromCloudinary(oldAvatar);      
+      const deleted = await deleteFromCloudinary(oldAvatar, "image");      
       if (deleted.result !== "ok") {
         // throw new ApiError(500, `Deletion not possible: ${deleted.result}`)
         console.log(`Old avatar deletion failed: ${deleted.result}`)
@@ -326,7 +326,7 @@ const updateUserCoverImage = asyncHandler( async (req, res) => {
 
   try {
     if (oldCoverImage) {      
-      const deleted = await deleteFromCloudinary(oldCoverImage);  
+      const deleted = await deleteFromCloudinary(oldCoverImage, "image");  
       if (deleted.result !== "ok") {
         // throw new ApiError(500, "Deletion failed")
         console.log(`Old cover image deletion failed: ${deleted.result}`)
