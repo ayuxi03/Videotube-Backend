@@ -204,4 +204,27 @@ const deleteVideo = asyncHandler (async (req, res) => {
     )
 })
 
-export { getAllVideos, publishVideo, getVideoById, incrementVideoViews, updateVideo, deleteVideo };
+const togglePublishStatus = asyncHandler ( async (req, res) => {
+  const { videoId } = req.params;
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid object ID");
+  }
+
+  const video = await Video.findOne(
+    {_id: videoId, owner: req.user?._id},
+  )
+  if (!video) {
+    throw new ApiError(404, "Video not found or unauthorized")
+  }
+
+  video.isPublished = !video.isPublished;
+  await video.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, video, "Publish status updated successfully")
+    )
+})
+
+export { getAllVideos, publishVideo, getVideoById, incrementVideoViews, updateVideo, deleteVideo , togglePublishStatus};
