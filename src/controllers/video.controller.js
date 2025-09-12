@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
+import { User } from "../models/user.model.js";
 
 const getAllVideos = asyncHandler (async (req, res) => {
   const { page = 1, limit = 10, query, sortBy="createdAt", sortType="desc", userId } = req.query;
@@ -12,13 +13,42 @@ const getAllVideos = asyncHandler (async (req, res) => {
     throw new ApiError(401, "User needs to be logged in");
   }
 
+  // fetch user id from user db if query is username or fullname. (Redundant if query is title or description still this request is done. But this is most optimal according to db structure.)
+  let user;
+  if (query) {
+    user = await User.findOne({
+      $or: [
+        { username: { $regex: query, $options: "i" } },
+        { fullName: { $regex: query, $options: "i" } }
+      ]
+    }).select("_id");
+  }
+
   const match = {
-    ...(query ? { title: { $regex: query, $options: "i" } } : {}),
-    ...(userId ? { owner: new mongoose.Types.ObjectId(userId) } : {}),
-    $or: [
-      { isPublished: true },
-      { owner: new mongoose.Types.ObjectId(req.user?._id) }
-    ] // if published then fetched, otherwise fetched only if owner is logged in user -> meaning if unpublished then can only be seen by owner logged in
+    $and: [
+      // 1: Query using title/description/user._id if query is username or fullname
+      ...(query ? [
+        {
+          $or: [
+            { title: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } },
+            ...(user ? [{ owner: user._id }] : [])
+          ]
+        }
+      ] : []),
+
+      // 1: If userId is provided, match only that owner
+      ...(userId ? 
+        [{ owner: new mongoose.Types.ObjectId(userId) }] : []),
+
+      // 2: Visibility rule: Fetch isPublished: true + loggedinUser all videos (including unpublished)
+      {
+        $or: [
+          { isPublished: true },
+          { owner: new mongoose.Types.ObjectId(req.user?._id) }
+        ]
+      } // if unpublished then can only be seen by owner logged in user
+    ]
   }
 
   const videos = await Video.aggregate([
@@ -54,7 +84,7 @@ const getAllVideos = asyncHandler (async (req, res) => {
         createdAt: 1,
         owner: { $first: "$videosByOwner" } // Extracts the first user object from the array
       },
-    },
+    },    
     {
       $sort: {
         [sortBy]: sortType === "desc" ? -1 : 1,
