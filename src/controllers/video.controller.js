@@ -14,8 +14,11 @@ const getAllVideos = asyncHandler (async (req, res) => {
 
   const match = {
     ...(query ? { title: { $regex: query, $options: "i" } } : {}),
-    ...(userId ? { owner: mongoose.Types.ObjectId(userId) } : {}),
-    ...(req.user?._id.toString() !== userId ? { isPublished: true } : {}), // only show published if owner != logged-in user, i.e., logged in user can see their own unpublished videos
+    ...(userId ? { owner: new mongoose.Types.ObjectId(userId) } : {}),
+    $or: [
+      { isPublished: true },
+      { owner: new mongoose.Types.ObjectId(req.user?._id) }
+    ] // if published then fetched, otherwise fetched only if owner is logged in user -> meaning if unpublished then can only be seen by owner logged in
   }
 
   const videos = await Video.aggregate([
@@ -28,6 +31,15 @@ const getAllVideos = asyncHandler (async (req, res) => {
         localField: "owner",
         foreignField: "_id",
         as: "videosByOwner",
+        pipeline: [
+          {
+            $project: {
+              fullName: 1,
+              username: 1,
+              avatar: 1
+            }
+          }
+        ]
       },
     },
     {
@@ -39,7 +51,8 @@ const getAllVideos = asyncHandler (async (req, res) => {
         duration: 1,
         views: 1,
         isPublished: 1,
-        owner: { $arrayElemAt: ["videosByOwner", 0] } // Extracts the first user object from the array
+        createdAt: 1,
+        owner: { $first: "$videosByOwner" } // Extracts the first user object from the array
       },
     },
     {
