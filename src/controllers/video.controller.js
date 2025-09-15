@@ -60,7 +60,7 @@ const getAllVideos = asyncHandler (async (req, res) => {
         from: "users",
         localField: "owner",
         foreignField: "_id",
-        as: "videosByOwner",
+        as: "ownerDetails",
         pipeline: [
           {
             $project: {
@@ -82,7 +82,7 @@ const getAllVideos = asyncHandler (async (req, res) => {
         views: 1,
         isPublished: 1,
         createdAt: 1,
-        owner: { $first: "$videosByOwner" } // Extracts the first user object from the array
+        owner: { $first: "$ownerDetails" } // Extracts the first user object from the array
       },
     },    
     {
