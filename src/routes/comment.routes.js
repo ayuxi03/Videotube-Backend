@@ -9,7 +9,7 @@ router.route("/:videoId")
   .get(getVideoComments)
   .post(addComment)
 
-router.route("/c/:commentId")
+router.route("/:commentId")
   .patch(updateComment)
   .delete(deleteComment)
 
