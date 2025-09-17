@@ -125,7 +125,27 @@ const updateComment = asyncHandler( async (req, res) => {
 })
 
 const deleteComment = asyncHandler ( async (req, res) => {
+  const { commentId } = req.params;
+  if (!isValidObjectId(commentId)) {
+    throw new ApiError(400, "Comment Id invalid")
+  }
 
+  const deletedComment = await Comment.findOneAndDelete(
+    {
+      _id: commentId,
+      owner: req.user?._id
+    }
+  )
+
+  if (!deletedComment) {
+    throw new ApiError(400, "Comment not found or unauthorized");
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, deletedComment, "Comment deleted successfully.")
+    )
 })
 
 
