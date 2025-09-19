@@ -3,7 +3,6 @@ import { Like } from "../models/like.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { isValidObjectId } from "mongoose";
 
 const toggleVideoLike = asyncHandler ( async (req, res) => {
   const { videoId } = req.params;
@@ -126,7 +125,20 @@ const toggleTweetLike = asyncHandler ( async (req, res) => {
 
 
 const getLikedVideos = asyncHandler ( async (req, res) => {
-  
+
+  const likedVideos = await Like.find({
+    likedBy: req.user?._id,
+    video: { $exists: true }
+  }).populate("video", "_id title videoFile thumbnail")
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        likedVideos,
+        likedVideos.length === 0 ? "No liked videos" : "Liked videos fetched successfully")
+    )
 })
 
 export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos }
