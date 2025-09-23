@@ -89,7 +89,25 @@ const updatePlaylist = asyncHandler ( async (req, res) => {
 
 
 const getUserPlaylists = asyncHandler ( async (req, res) => {
+  const { userId } = req.params;
+  if (!isValidObjectId(userId)) {
+    throw new ApiError(400, "Invalid user ID");
+  }
 
+  const playlists = await Playlist
+    .find({ owner: userId })
+    .sort({ createdAt: -1 })
+    .populate("videos", "_id title thumbnail videoFile");
+  
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        playlists,
+        playlists.length > 0 ? "User playlists retrieved successfully." : "No playlists found."
+      )
+    )
 })
 
 
