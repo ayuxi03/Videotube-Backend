@@ -2,7 +2,8 @@ import mongoose, { isValidObjectId } from "mongoose";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Playlist } from "../models/playlist.models.js"
+import { Playlist } from "../models/playlist.models.js";
+import { Video } from "../models/video.model.js";
 
 const createPlaylist = asyncHandler ( async (req, res) => {
   const { name, description } = req.body;
@@ -138,13 +139,60 @@ const getPlaylistById = asyncHandler ( async (req, res) => {
 
 
 const addVideoToPlaylist = asyncHandler ( async (req, res) => {
-  
+  const { playlistId, videoId } = req.params;
+  if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid playlist ID or video ID");
+  }
+
+  const video = await Video.findOne({
+    _id: videoId,
+    isPublished: true
+  })
+
+  if (!video) {
+    throw new ApiError(404, "Unpublished video cannot be added to playlist.")
+  }
+
+  const updatedPlaylist = await Playlist.findOneAndUpdate(
+    { _id: playlistId, owner: req.user?._id },
+    { $addToSet: { videos: videoId } },
+    { new: true }
+  )
+
+  if (!updatedPlaylist) {
+    throw new ApiError(404, "Playlist not found or unauthorized to update.")
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedPlaylist, "Video added to playlist successfully.")
+    )
 })
 
 
 
 const removeVideoFromPlaylist = asyncHandler ( async (req, res) => {
-  
+  const { videoId, playlistId } = req.params;
+  if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
+    throw new ApiError(400, "Invalid playlist ID or video ID");
+  }
+
+  const updatedPlaylist = await Playlist.findOneAndUpdate(
+    { _id: playlistId, owner: req.user?._id },
+    { $pull: { videos: videoId } },
+    { new: true }
+  )
+
+  if (!updatedPlaylist) {
+    throw new ApiError(404, "Playlist not found or unauthorized to update.")
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, updatedPlaylist, "Video removed from playlist successfully.")
+    )
 })
 
 
