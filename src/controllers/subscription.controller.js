@@ -3,7 +3,6 @@ import { Subscription } from "../models/subscription.models.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
-// import { User } from "../models/user.model.js";
 
 const toggleSubscription = asyncHandler ( async (req, res) => {
   const { channelId } = req.params;
@@ -50,10 +49,27 @@ const toggleSubscription = asyncHandler ( async (req, res) => {
 
 const getUserSubscriptions = asyncHandler ( async (req, res) => {
 
+  const subscriptions = await Subscription.find({
+    subscriber: req.user?._id
+  }).populate("channel", "name email avatar");
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, subscriptions, subscriptions.length === 0 ? "No subscriptions found" : "Subscriptions fetched successfully")
+    )
 })
 
-const getUserChannelSubscribers = asyncHandler ( async (req, res) => {
+const getChannelSubscribers = asyncHandler ( async (req, res) => {
+  const subscribers = await Subscription.find({
+    channel: req.user?._id
+  }).populate("subscriber", "name email avatar");
 
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, subscribers, subscribers.length === 0 ? "No subscribers found" : "Subscribers fetched successfully")
+    )
 })
 
-export { toggleSubscription, getUserSubscriptions, getUserChannelSubscribers }
+export { toggleSubscription, getUserSubscriptions, getChannelSubscribers }
