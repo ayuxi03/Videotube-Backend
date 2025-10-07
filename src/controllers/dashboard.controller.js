@@ -9,6 +9,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
+  // Extract the authenticated user's ID (the channel owner)
   const userId = req.user?._id;
 
   const [ totalVideos, totalSubscribers ] = await Promise.all([
@@ -63,14 +64,22 @@ const getChannelStats = asyncHandler(async (req, res) => {
 
 
 const getChannelVideos = asyncHandler(async (req, res) => {
+  
   const userId = req.user?._id;
   if (!isValidObjectId(channelId)) {
     throw new ApiError(400, "Invalid Channel ID");
   }
 
+  /*
+   Fetching All Videos Uploaded by the User (Channel Owner)
+    -----------------------------------------------------------
+    - We use `Video.find({ owner: userId })` to search for all videos where the `owner` field matches `userId`.
+    - `userId` represents the currently logged-in user, meaning we are getting only THEIR videos.
+  */
+
   const videos = await Video
-    .find({ owner: channelId })
-    .sort({ createdAt: -1 });
+    .find({ owner: userId })
+    .sort({ createdAt: -1 }); // Sorting videos in descending order (newest first)
 
   return res
     .status(200)
