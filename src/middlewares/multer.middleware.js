@@ -24,9 +24,9 @@ const storage = multer.diskStorage({
   // Filename configuration
   filename: function(req, file, cb) {
 
-    // Optional: Can add a unique suffix for uniqueness
-    // const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    // cb(null, file.fieldname + '-' + uniqueSuffix)
+  /* 💡 Optional: add unique suffix to avoid duplicate filenames
+      - const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+      - cb(null, file.fieldname + '-' + uniqueSuffix) */
     
     cb(null, file.originalname) // Keeps original filename
   }
