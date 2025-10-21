@@ -1,6 +1,14 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
+/*
+ CLOUDINARY CONFIGURATION
+--------------------------
+👉 Purpose:
+   - To connect the Node.js app to the Cloudinary account for media uploads.
+   - The credentials are securely stored in environment variables.
+*/
+
 cloudinary.config({ 
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
   api_key: process.env.CLOUDINARY_API_KEY, 
