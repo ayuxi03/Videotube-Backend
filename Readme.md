@@ -14,16 +14,15 @@ It provides all core backend functionalities like user authentication, video man
 - Cookie support with **cookie-parser**
 
 ### Video Management
-- Upload, update, and delete videos  
+- Upload, fetch, update, and delete videos  
 - Cloud storage integration via **Cloudinary**  
-- Thumbnails and metadata management  
-- Public/private video visibility
+- Thumbnails, views, and metadata management  
+- Published/unpublished video visibility
 
 ### Engagement System
 - Like and unlike videos  
 - Subscribe/unsubscribe to channels  
-- Comment and reply system  
-- Create tweet-like posts  
+- Comment and tweet system  
 - View tracking and analytics
 
 ### Channel Dashboard
